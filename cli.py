@@ -15,13 +15,13 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
-from ainote.latex.parser import find_directives, replace_generated_blocks
-from ainote.latex.checks import run_checks
-from ainote.suggestions.renderer import write_suggestions_md
-from ainote.ai.provider import get_provider
-from ainote.latex.edits import build_replacements_with_diff, apply_unified_diff
+from latex.parser import find_directives
+from latex.checks import run_checks
+from suggestions.renderer import write_suggestions_md
+from ai.provider import get_provider
+from latex.edits import build_replacements_with_diff, apply_unified_diff
 
-app = typer.Typer(help="Your AI note assistant")
+app = typer.Typer(help="LaTeX note taking assistant")
 console = Console()
 
 

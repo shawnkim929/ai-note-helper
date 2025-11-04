@@ -2,7 +2,7 @@ import difflib
 import hashlib
 from pathlib import Path
 from typing import List, Tuple
-from ainote.latex.parser import replace_generated_blocks, Directive
+from latex.parser import Directive, replace_generated_blocks
 
 
 
