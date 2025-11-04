@@ -1,0 +1,5 @@
+.DS_Store
+__pycache__
+ai/__pycache__
+latex/__pycache__
+suggestions/__pycache__
