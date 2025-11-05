@@ -1,0 +1,15 @@
+--- example.tex
++++ example.tex
+@@ -15,6 +15,12 @@
+ 
+ We need to show that $f$ is uniformly continuous. 
+ %!ai clarify(apply=true, max_tokens=150): "Provide a step-by-step proof outline for showing uniform continuity, focusing on the key steps without going into full detail."
++%!ai-begin id=0b85be9b verb=clarify
++```
++(MODEL-PLACEHOLDER) Provide a step-by-step proof outline for showing uniform continuity, focusing on the key steps without going into full detail.
++```
++%!ai-end id=0b85be9b
++
+ 
+ The function $f(x) = x^2$ on $[0,1]$ is uniformly continuous.
+ %!ai expand(apply=false): "Explain why this is true and provide a brief justification."

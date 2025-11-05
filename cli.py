@@ -17,6 +17,7 @@ from rich.panel import Panel
 
 from latex.parser import find_directives
 from latex.checks import run_checks
+from latex.ai_checks import run_ai_checks
 from suggestions.renderer import write_suggestions_md
 from ai.provider import get_provider
 from latex.edits import build_replacements_with_diff, apply_unified_diff
@@ -33,7 +34,11 @@ def _debounce_sleep():
 
 
 @app.command()
-def scan(tex_file: str, apply: bool = typer.Option(False, help="Apply AI insertions when directives request to apply=true")):
+def scan(
+    tex_file: str, 
+    apply: bool = typer.Option(False, help="Apply AI insertions when directives request to apply=true"),
+    ai_checks: bool = typer.Option(False, help="Run AI-powered checks for vague/incomplete sections")
+):
 
     """
     Run linters and process inline AI directives through a single pass.
@@ -49,10 +54,22 @@ def scan(tex_file: str, apply: bool = typer.Option(False, help="Apply AI inserti
     # 1) Deterministic checks and suggestions
 
     checks = run_checks(src)
+    
+    # 2) Optional AI-powered checks
+    if ai_checks:
+        from ai.provider import DummyProvider
+        provider = get_provider()
+        if not isinstance(provider, DummyProvider):
+            console.print("[cyan]Running AI-powered checks...[/cyan]")
+            ai_suggestions = run_ai_checks(src, provider)
+            checks.extend(ai_suggestions)
+        else:
+            console.print("[yellow]AI checks skipped (using dummy provider). Set AINOTE_PROVIDER to enable.[/yellow]")
+    
     suggestions_path = write_suggestions_md(path, checks)
     console.print(Panel.fit(f"[bold]Suggestions written:[/bold] {suggestions_path}"))
 
-    # 2) Look for any directives
+    # 3) Look for any directives
 
     directives = find_directives(src)
 
@@ -62,7 +79,7 @@ def scan(tex_file: str, apply: bool = typer.Option(False, help="Apply AI inserti
 
     console.print(f"[cyan]Found {len(directives)} AI directive(s).[/cyan]")
 
-    # 3) Optionally resolve directives and handle prompting
+    # 4) Optionally resolve directives and handle prompting
 
     provider = get_provider()  # reads from env/config
     replacements = []
@@ -88,13 +105,13 @@ def scan(tex_file: str, apply: bool = typer.Option(False, help="Apply AI inserti
     if not replacements:
         return
 
-    # 4) Unify the changes from the applied directives and the original source into a separate difference file, plus including .undo
+    # 5) Unify the changes from the applied directives and the original source into a separate difference file, plus including .undo
 
     diff_path, undo_path, new_text = build_replacements_with_diff(src, replacements, path)
     console.print(f"[bold]Diff:[/bold] {diff_path}")
     console.print(f"[bold]Undo patch:[/bold] {undo_path}")
 
-    # 5) Write changes to file
+    # 6) Write changes to file
 
     path.write_text(new_text, encoding="utf-8")
     console.print("[green]File updated with AI blocks.[/green]")
@@ -128,7 +145,8 @@ def watch(tex_file: str):
                 _debounce_sleep()
 
                 try:
-                    scan(str(path))
+                    # Use same args as watch command - you can customize this
+                    scan(str(path), apply=False, ai_checks=False)
 
                 except Exception as e:
                     console.print(f"[red]Error during scan:[/red] {e}")
